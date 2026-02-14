@@ -36,7 +36,9 @@ Instead of guesswork, farmers get:
 
 Farm Sage is powered by a LangGraph multi-agent workflow:
 
-<img src="workflow_graph.png" width="500"/>
+![Workflow Graph](assets/workflow_graph.png)
+
+
 Flow Explanation
 
 Intake Node – Captures farm profile & constraints
@@ -99,7 +101,6 @@ Deterministic scoring layer
 
 Agent orchestration via state graph
 
-![Workflow Graph](/assets/my_workflow_graph.png)
 
 # How To Run
 1️⃣ Install Dependencies
