@@ -83,31 +83,13 @@ Scientifically defensible
 Demo-ready for judges
 
 # Tech Stack
-Backend
-
-Python
-
-FastAPI
-
-LangGraph
-
-LangChain
-
-Morph LLM API
-
-Pydantic models
+Backend: Python , FastAPI, LangGraph , LangChain, Morph LLM API, Pydantic models
 
 # Frontend
 
-Vanilla JS
+Vanilla JS, Glassmorphism dashboard UI, Composite KPI visualization, Interactive scenario builder
 
-Glassmorphism dashboard UI
-
-Composite KPI visualization
-
-Interactive scenario builder
-
-Architecture
+# Architecture
 
 Parallel AI agents
 
