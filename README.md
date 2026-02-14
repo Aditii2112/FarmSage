@@ -1,4 +1,5 @@
 🌱 Farm Sage
+
 AI-Powered Climate-Smart Crop Planning
 
 Farm Sage is a multi-agent AI system that helps farmers generate climate-smart crop strategies in seconds.
@@ -6,7 +7,7 @@ It simulates tradeoffs between water efficiency, yield maximization, and soil ca
 
 Built using LangGraph multi-agent orchestration + Morph LLM, Farm Sage transforms complex agricultural decision-making into a clear, data-driven recommendation dashboard.
 
-🚜 Why Farm Sage?
+# Why Farm Sage?
 
 Farmers today face impossible tradeoffs:
 
@@ -31,7 +32,7 @@ Instead of guesswork, farmers get:
 ✔ Soil impact insights
 ✔ A ranked best-fit strategy
 
-🧠 System Architecture
+# System Architecture
 
 Farm Sage is powered by a LangGraph multi-agent workflow:
 
@@ -60,7 +61,7 @@ Selects final recommendation
 
 This architecture enables parallel AI reasoning + structured merging, rather than single-response generation.
 
-📊 Composite KPI Scoring
+# Composite KPI Scoring
 
 Each plan is scored using:
 
@@ -81,7 +82,7 @@ Scientifically defensible
 
 Demo-ready for judges
 
-🖥️ Tech Stack
+# Tech Stack
 Backend
 
 Python
@@ -96,7 +97,7 @@ Morph LLM API
 
 Pydantic models
 
-Frontend
+# Frontend
 
 Vanilla JS
 
@@ -116,7 +117,7 @@ Deterministic scoring layer
 
 Agent orchestration via state graph
 
-⚙️ How To Run
+# How To Run
 1️⃣ Install Dependencies
 pip install -r requirements.txt
 
@@ -148,7 +149,7 @@ View ranked composite KPI score
 
 Export structured JSON for analysis
 
-🌍 Vision
+# Vision
 
 Farm Sage is designed as a foundation for:
 
