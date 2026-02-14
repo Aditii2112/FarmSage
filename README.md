@@ -35,7 +35,10 @@ Instead of guesswork, farmers get:
 # System Architecture
 
 Farm Sage is powered by a LangGraph multi-agent workflow:
+
+
 ![Workflow Graph](https://github.com/Aditii2112/FarmSage/blob/main/assets/workflow_graph.png?raw=true)
+
 
 
 
