@@ -7,6 +7,8 @@ It simulates tradeoffs between water efficiency, yield maximization, and soil ca
 
 Built using LangGraph multi-agent orchestration + Morph LLM, Farm Sage transforms complex agricultural decision-making into a clear, data-driven recommendation dashboard.
 
+Demo: https://drive.google.com/file/d/1j7UVs-Q60YhjKRXQYOyR2RzFGxnN1kUd/view?usp=sharing
+
 # Why Farm Sage?
 
 Farmers today face impossible tradeoffs:
