@@ -42,7 +42,7 @@ Farm Sage is powered by a LangGraph multi-agent workflow:
 
 
 
-Flow Explanation
+# Flow Explanation
 
 Intake Node – Captures farm profile & constraints
 
