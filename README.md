@@ -1,4 +1,4 @@
-🌱 Farm Sage
+# 🌱 Farm Sage
 
 AI-Powered Climate-Smart Crop Planning
 
