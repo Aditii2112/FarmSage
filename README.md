@@ -99,6 +99,8 @@ Deterministic scoring layer
 
 Agent orchestration via state graph
 
+![Workflow Graph](/assets/my_workflow_graph.png)
+
 # How To Run
 1️⃣ Install Dependencies
 pip install -r requirements.txt
