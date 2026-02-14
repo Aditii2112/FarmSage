@@ -1,0 +1,1000 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Climate-Smart Crop Plan Generator</title>
+  <style>
+    :root {
+      --bg:#07110c;
+
+      /* Glass cards */
+      --card: rgba(16, 28, 22, .74);
+      --card2: rgba(16, 28, 22, .58);
+
+      --muted:#a9b7ad;
+      --text:#eef6f0;
+
+      --accent:#3ddc84;   /* leaf green */
+      --accent2:#6ea8ff;  /* sky blue */
+      --good:#3ddc84;
+      --warn:#f7c948;     /* harvest gold */
+      --bad:#ff6b6b;
+
+      --border: rgba(255,255,255,.10);
+      --shadow: 0 18px 60px rgba(0,0,0,.35);
+
+      --radius: 18px;
+      --radius2: 14px;
+    }
+
+    /* Base page */
+    body {
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto;
+      color:var(--text);
+      background: #050a07;
+    }
+
+    /* Farm photo background layer */
+    body::before{
+      content:"";
+      position: fixed;
+      inset: 0;
+      z-index: -2;
+      background-image: url("/web/farm.jpg");
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      filter: blur(2px) saturate(1.05) contrast(1.05);
+      transform: scale(1.03); /* prevent blur edges */
+    }
+
+    /* Dark/tinted overlay for readability */
+    body::after{
+      content:"";
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+      background:
+        linear-gradient(to bottom, rgba(0,0,0,.75) 0%, rgba(0,0,0,.45) 40%, rgba(0,0,0,.55) 100%),
+        radial-gradient(1200px 700px at 12% -10%, rgba(61,220,132,.22), transparent 58%),
+        radial-gradient(900px 600px at 88% 0%, rgba(110,168,255,.16), transparent 62%);
+      pointer-events:none;
+    }
+
+    .wrap{ max-width:1200px; margin:0 auto; padding:26px 18px 80px; }
+    h1{ margin:0 0 6px; font-size:30px; letter-spacing:.2px; }
+    .sub{ color:var(--muted); margin-bottom:18px; }
+
+    .grid{
+      display:grid;
+      grid-template-columns: 380px 1fr;
+      gap:16px;
+      align-items:start;
+    }
+
+    .panel{
+      background:var(--card);
+      border:1px solid var(--border);
+      border-radius: var(--radius);
+      padding:14px;
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      overflow: hidden; /* IMPORTANT: prevents inner stuff from spilling outside */
+    }
+
+    .sticky{ position:sticky; top:16px; }
+
+    .sectionTitle{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      padding:8px 10px;
+      margin:-4px -4px 10px;
+      border-radius: 14px;
+      background: rgba(255,255,255,.03);
+      border: 1px solid rgba(255,255,255,.06);
+    }
+    .sectionTitle .left{
+      display:flex; align-items:center; gap:10px;
+      font-weight:800;
+    }
+    .dot{
+      width:10px; height:10px; border-radius:999px;
+      background: radial-gradient(circle at 30% 30%, #fff, rgba(255,255,255,.25));
+      box-shadow: 0 0 0 6px rgba(110,168,255,.18);
+    }
+    .mini{
+      font-size:12px;
+      color:var(--muted);
+      font-weight:600;
+      max-width: 210px;              /* keeps it inside card */
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    label{ display:block; font-size:12px; color:var(--muted); margin:10px 0 6px; }
+    input, select{
+      width:100%;
+      padding:10px 12px;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,.12);
+      background: rgba(0,0,0,.18);
+      color: var(--text);
+      outline:none;
+    }
+    input::placeholder{ color: rgba(233,237,255,.35); }
+
+    .row{ display:grid; grid-template-columns: 1fr 1fr; gap:10px; }
+
+    .chips{ display:flex; flex-wrap:wrap; gap:8px; margin-top:8px; }
+    .chip{
+      cursor:pointer; user-select:none;
+      padding:8px 10px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.12);
+      color:var(--muted);
+      font-size:12px;
+      background: rgba(255,255,255,.03);
+      transition: transform .08s ease, background .15s ease, border-color .15s ease, opacity .15s ease;
+    }
+    .chip:hover{ transform: translateY(-1px); }
+    .chip.on{
+      border-color: rgba(110,168,255,.72);
+      color: var(--text);
+      background: rgba(110,168,255,.14);
+      box-shadow: 0 0 0 2px rgba(110,168,255,.12) inset;
+    }
+    .chip.disabled{ opacity:.55; pointer-events:none; }
+
+    .btnrow{ display:flex; gap:10px; margin-top:14px; }
+    button{
+      cursor:pointer;
+      border:none;
+      border-radius:14px;
+      padding:10px 12px;
+      font-weight:800;
+      color:#052012;
+      background: linear-gradient(180deg, rgba(61,220,132,1), rgba(42,184,108,1));
+      box-shadow: 0 10px 30px rgba(61,220,132,.18);
+      transition: transform .08s ease, filter .15s ease;
+    }
+    button.secondary{
+      background: rgba(255,255,255,.06);
+      color: var(--text);
+      border: 1px solid var(--border);
+      box-shadow: none;
+    }
+    button:hover{ transform: translateY(-1px); filter: brightness(1.03); }
+    button:active{ transform: translateY(0px); }
+    button:disabled{ opacity:.6; cursor:not-allowed; transform:none; }
+
+    .status{ margin-top:10px; font-size:12px; color: var(--muted); min-height:16px; }
+    .error{
+      margin-top:10px;
+      padding:10px;
+      border-radius:12px;
+      background: rgba(255,107,107,.12);
+      border:1px solid rgba(255,107,107,.35);
+      color: #ffd1d1;
+      display:none;
+      white-space: pre-wrap;
+    }
+
+    .topRow{
+      display:grid;
+      grid-template-columns: 1.15fr .85fr;
+      gap:12px;
+      margin-bottom:12px;
+    }
+    .subpanel{
+      background: var(--card2);
+      border:1px solid rgba(255,255,255,.07);
+      border-radius: var(--radius);
+      padding:12px;
+      overflow: hidden; /* prevents any overflow */
+    }
+
+    table{
+      width:100%;
+      border-collapse: collapse;
+      border-radius: var(--radius2);
+      overflow:hidden;
+      border:1px solid rgba(255,255,255,.10);
+    }
+    th, td{
+      padding:10px 12px;
+      border-bottom:1px solid rgba(255,255,255,.08);
+      text-align:left;
+      font-size:13px;
+      vertical-align:top;
+    }
+    th{
+      color:var(--muted);
+      font-weight:900;
+      background: rgba(255,255,255,.03);
+    }
+
+    .badge{
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      padding:4px 8px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.12);
+      font-size:12px;
+      color: var(--text);
+      background: rgba(255,255,255,.04);
+      line-height:1;
+      white-space:nowrap;
+      max-width: 100%;
+    }
+    .bDot{ width:8px; height:8px; border-radius:999px; background: rgba(255,255,255,.35); }
+
+    .b-low{ border-color: rgba(55,214,122,.35); background: rgba(55,214,122,.10); }
+    .b-low .bDot{ background: var(--good); }
+    .b-med{ border-color: rgba(255,204,102,.35); background: rgba(255,204,102,.10); }
+    .b-med .bDot{ background: var(--warn); }
+    .b-high{ border-color: rgba(255,107,107,.35); background: rgba(255,107,107,.10); }
+    .b-high .bDot{ background: var(--bad); }
+
+    .b-soilneg{ border-color: rgba(255,107,107,.30); background: rgba(255,107,107,.08); }
+    .b-soilneg .bDot{ background: var(--bad); }
+    .b-soil0{ border-color: rgba(255,255,255,.18); background: rgba(255,255,255,.04); }
+    .b-soil0 .bDot{ background: rgba(255,255,255,.35); }
+    .b-soilpos{ border-color: rgba(55,214,122,.30); background: rgba(55,214,122,.08); }
+    .b-soilpos .bDot{ background: var(--good); }
+
+    .b-costlow{ border-color: rgba(55,214,122,.28); background: rgba(55,214,122,.07); }
+    .b-costlow .bDot{ background: var(--good); }
+    .b-costmed{ border-color: rgba(255,204,102,.28); background: rgba(255,204,102,.08); }
+    .b-costmed .bDot{ background: var(--warn); }
+    .b-costhigh{ border-color: rgba(255,107,107,.28); background: rgba(255,107,107,.08); }
+    .b-costhigh .bDot{ background: var(--bad); }
+
+    .recHead{
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:12px;
+      margin-bottom:8px;
+    }
+    .recTitle{
+      font-size:16px;
+      font-weight:900;
+      margin:0;
+    }
+    .recBody{ color: var(--muted); font-size:13px; line-height:1.4; }
+    .why{ margin:10px 0 0 18px; }
+    .why li{ margin:6px 0; }
+
+    .tabs{
+      display:flex;
+      gap:10px;
+      margin:12px 0 10px;
+      flex-wrap:wrap;
+    }
+    .tab{
+      flex:1;
+      min-width: 180px;
+      background: rgba(255,255,255,.04);
+      border: 1px solid rgba(255,255,255,.10);
+      border-radius: 14px;
+      padding:10px 12px;
+      cursor:pointer;
+      transition: transform .08s ease, border-color .15s ease, background .15s ease;
+      overflow:hidden; /* keeps badges inside */
+    }
+    .tab:hover{ transform: translateY(-1px); }
+    .tab.active{
+      border-color: rgba(110,168,255,.55);
+      background: rgba(110,168,255,.10);
+      box-shadow: 0 0 0 2px rgba(110,168,255,.10) inset;
+    }
+    .tabTop{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      margin-bottom:6px;
+    }
+    .tabKey{ font-size:11px; color: var(--muted); font-weight:900; letter-spacing:.4px; }
+
+    /* This was your overflow problem: constrain + allow wrap */
+    .tabMetrics{
+      display:flex;
+      gap:6px;
+      align-items:center;
+      flex-wrap: wrap;
+      justify-content:flex-end;
+      max-width: 58%;
+    }
+    .tabName{ font-size:14px; font-weight:900; margin:0; }
+
+    .planDetail{
+      background: rgba(255,255,255,.03);
+      border:1px solid rgba(255,255,255,.08);
+      border-radius: var(--radius);
+      padding:12px;
+      overflow:hidden;
+    }
+    .planTitle{
+      font-size:18px;
+      font-weight:900;
+      margin:2px 0 6px;
+    }
+    .planSummary{
+      color: var(--muted);
+      font-size:13px;
+      line-height:1.45;
+      white-space:pre-line;
+    }
+    .pillRow{
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+      margin-top:10px;
+    }
+
+    details{ margin-top:12px; border-top:1px solid rgba(255,255,255,.08); padding-top:10px; }
+    summary{ cursor:pointer; font-weight:900; }
+    ul{ margin:8px 0 0 18px; }
+
+    .skeleton{
+      position:relative;
+      overflow:hidden;
+      background: rgba(255,255,255,.035);
+      border:1px solid rgba(255,255,255,.06);
+      border-radius: 14px;
+    }
+    .shimmer::after{
+      content:"";
+      position:absolute;
+      inset:0;
+      transform: translateX(-100%);
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,.08), transparent);
+      animation: shimmer 1.1s infinite;
+    }
+    @keyframes shimmer{
+      0% { transform: translateX(-100%); }
+      100% { transform: translateX(110%); }
+    }
+    .skRow{ height: 14px; margin:10px; border-radius:10px; }
+    .skRow.big{ height: 18px; }
+    .skBlock{ height: 220px; }
+    .skBlock2{ height: 320px; }
+
+    .footerbtn{ margin-top:12px; display:flex; gap:10px; }
+    .hint{ font-size:12px; color: var(--muted); margin-top:8px; }
+
+    @media (max-width: 980px){
+      .grid{ grid-template-columns: 1fr; }
+      .sticky{ position:relative; top:auto; }
+      .topRow{ grid-template-columns: 1fr; }
+      .tabMetrics{ max-width: 100%; justify-content:flex-start; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap" id="top">
+    <h1>Climate-Smart Crop Plan Generator</h1>
+    <div class="sub">LangGraph multi-agent scenario planning (Water • Yield • Carbon) + Morph LLM</div>
+
+    <div class="grid">
+      <!-- Left: Scenario Builder -->
+      <div class="panel sticky">
+        <div class="sectionTitle">
+          <div class="left">
+            <div class="dot"></div>
+            <div>Scenario Builder</div>
+          </div>
+          <div class="mini" id="miniStatus">Ready</div>
+        </div>
+
+        <div class="row">
+          <div>
+            <label>Crop</label>
+            <select id="crop">
+              <option>tomato</option>
+              <option>rice</option>
+              <option>almond</option>
+              <option>lettuce</option>
+              <option>corn</option>
+              <option>grape</option>
+              <option>walnut</option>
+            </select>
+          </div>
+          <div>
+            <label>Acres</label>
+            <input id="acres" type="number" min="0.1" step="0.1" value="1" />
+          </div>
+        </div>
+
+        <div class="row">
+          <div>
+            <label>Soil type</label>
+            <select id="soil_type">
+              <option value="sandy">sandy</option>
+              <option value="loam" selected>loam</option>
+              <option value="clay">clay</option>
+            </select>
+          </div>
+          <div>
+            <label>Irrigation</label>
+            <select id="irrigation">
+              <option value="drip" selected>drip</option>
+              <option value="sprinkler">sprinkler</option>
+              <option value="flood">flood</option>
+              <option value="other">other</option>
+            </select>
+          </div>
+        </div>
+
+        <label>Location</label>
+        <input id="location" placeholder="Davis, CA" value="Davis, CA" />
+
+        <label>Constraints (click to toggle)</label>
+        <div class="chips" id="chips"></div>
+
+        <div class="btnrow">
+          <button id="runBtn">Generate plans</button>
+          <button class="secondary" id="resetBtn">Reset</button>
+        </div>
+
+        <div class="status" id="status"></div>
+        <div class="error" id="errorBox"></div>
+
+        <div class="footerbtn">
+          <button class="secondary" id="exportBtn" disabled>Export JSON</button>
+          <button class="secondary" id="copyBtn" disabled>Copy JSON</button>
+        </div>
+        <div class="hint">Tip: click a plan tab to view details. “Checklist” expands practices + timeline.</div>
+      </div>
+
+      <!-- Right: Dashboard -->
+      <div class="panel">
+        <div class="topRow">
+          <!-- Comparison -->
+          <div class="subpanel">
+            <div class="sectionTitle" style="margin:0 0 10px;">
+              <div class="left">
+                <div class="dot" style="box-shadow:0 0 0 6px rgba(255,204,102,.18)"></div>
+                <div>Tradeoff Comparison</div>
+              </div>
+              <div class="mini">Water • Cost • Soil • Risk • Score</div>
+            </div>
+            <div id="comparisonWrap">
+              <div style="color:var(--muted); font-size:12px;">Run a scenario to populate the comparison.</div>
+            </div>
+          </div>
+
+          <!-- Recommendation -->
+          <div class="subpanel" id="recPanel">
+            <div class="sectionTitle" style="margin:0 0 10px;">
+              <div class="left">
+                <div class="dot" style="box-shadow:0 0 0 6px rgba(55,214,122,.16)"></div>
+                <div>Recommendation</div>
+              </div>
+              <div class="mini" id="winnerMini">—</div>
+            </div>
+            <div id="recWrap">
+              <div style="color:var(--muted); font-size:12px;">Your “why” will appear here.</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tabs + Plan detail -->
+        <div class="subpanel" id="plansPanel">
+          <div class="sectionTitle" style="margin:0 0 10px;">
+            <div class="left">
+              <div class="dot" style="box-shadow:0 0 0 6px rgba(110,168,255,.18)"></div>
+              <div>Plans</div>
+            </div>
+            <div class="mini" id="tabsMini">Select a plan</div>
+          </div>
+
+          <div id="tabsWrap"></div>
+          <div id="planWrap"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script>
+  const API_URL = "/api/generate-plans";
+
+  const constraintOptions = [
+    { key: "water_limit", label: "Water limit" },
+    { key: "budget_cap", label: "Budget cap" },
+    { key: "labor_limited", label: "Labor limited" },
+    { key: "organic_only", label: "Organic only" },
+    { key: "maximize_yield", label: "Maximize yield" },
+    { key: "maximize_carbon", label: "Maximize carbon" },
+  ];
+
+  const selected = new Set(["water_limit"]);
+  let lastResponse = null;
+  let activeKey = null;
+
+  const chipsEl = document.getElementById("chips");
+  const statusEl = document.getElementById("status");
+  const miniStatusEl = document.getElementById("miniStatus");
+  const errorBox = document.getElementById("errorBox");
+
+  const runBtn = document.getElementById("runBtn");
+  const exportBtn = document.getElementById("exportBtn");
+  const copyBtn = document.getElementById("copyBtn");
+
+  const comparisonWrap = document.getElementById("comparisonWrap");
+  const recWrap = document.getElementById("recWrap");
+  const tabsWrap = document.getElementById("tabsWrap");
+  const planWrap = document.getElementById("planWrap");
+
+  const winnerMini = document.getElementById("winnerMini");
+  const tabsMini = document.getElementById("tabsMini");
+
+  function escapeHtml(s){
+    return String(s)
+      .replaceAll("&","&amp;")
+      .replaceAll("<","&lt;")
+      .replaceAll(">","&gt;");
+  }
+
+  function setChipsDisabled(disabled){
+    chipsEl.querySelectorAll(".chip").forEach(el => {
+      if (disabled) el.classList.add("disabled");
+      else el.classList.remove("disabled");
+    });
+  }
+
+  function renderChips(){
+    chipsEl.innerHTML = "";
+    for (const c of constraintOptions) {
+      const el = document.createElement("div");
+      el.className = "chip" + (selected.has(c.key) ? " on" : "");
+      el.textContent = c.label;
+      el.onclick = () => {
+        if (runBtn.disabled) return;
+        if (selected.has(c.key)) selected.delete(c.key);
+        else selected.add(c.key);
+        renderChips();
+      };
+      chipsEl.appendChild(el);
+    }
+  }
+
+  function badgeWater(v){
+    const cls = v === "Low" ? "b-low" : (v === "High" ? "b-high" : "b-med");
+    return `<span class="badge ${cls}"><span class="bDot"></span>${v ?? "—"}</span>`;
+  }
+  function badgeRisk(v){
+    const cls = v === "Low" ? "b-low" : (v === "High" ? "b-high" : "b-med");
+    return `<span class="badge ${cls}"><span class="bDot"></span>${v ?? "—"}</span>`;
+  }
+  function badgeCost(v){
+    const cls = v === "$" ? "b-costlow" : (v === "$$$" ? "b-costhigh" : "b-costmed");
+    return `<span class="badge ${cls}"><span class="bDot"></span>${v ?? "—"}</span>`;
+  }
+  function badgeSoil(v){
+    const cls = (v === "++" || v === "+") ? "b-soilpos" : ((v === "--" || v === "-") ? "b-soilneg" : "b-soil0");
+    return `<span class="badge ${cls}"><span class="bDot"></span>${v ?? "—"}</span>`;
+  }
+  function badgeScore(v){
+    return `<span class="badge"><span class="bDot"></span>${v ?? "—"}</span>`;
+  }
+
+  function rankBucket(v){ return ({ "Low":0, "Med":1, "High":2 }[v] ?? 1); }
+  function rankCost(v){ return ({ "$":0, "$$":1, "$$$":2 }[v] ?? 1); }
+  function rankSoil(v){ return ({ "--":0, "-":1, "0":2, "+":3, "++":4 }[v] ?? 2); }
+  function clamp(n, a, b){ return Math.max(a, Math.min(b, n)); }
+
+  // Convert labels -> 0..99 score (higher = better, avoids "everything is 100")
+  function scoreFromLabels(p){
+    // lower water/cost/risk is better; higher soil is better
+    const water = 100 - rankBucket(p.water_use) * 25;    // Low=100, Med=75, High=50
+    const cost  = 100 - rankCost(p.cost) * 25;          // $=100, $$=75, $$$=50
+    const soil  = 40 + rankSoil(p.soil_health) * 12;    // -- low, ++ high
+    const risk  = 100 - rankBucket(p.risk) * 20;        // Low=100, Med=80, High=60
+
+    // Base score
+    let score = (0.30*water) + (0.25*cost) + (0.25*soil) + (0.20*risk);
+
+    // Constraint-weighting (lighter boosts so it doesn't saturate)
+    const constraints = Array.from(selected);
+    if (constraints.includes("water_limit")) score += 5 * (2 - rankBucket(p.water_use));
+    if (constraints.includes("budget_cap")) score += 5 * (2 - rankCost(p.cost));
+    if (constraints.includes("maximize_carbon")) score += 4 * (rankSoil(p.soil_health) - 2);
+    if (constraints.includes("maximize_yield")) score += (p.key === "yield_priority" ? 7 : 0);
+
+    return Math.round(clamp(score, 0, 99));
+  }
+
+  function withScores(plans){
+    return (plans || []).map(p => ({ ...p, score: scoreFromLabels(p) }));
+  }
+
+  function prettyKey(k){
+    if (k === "water_saver") return "Water Saver";
+    if (k === "yield_priority") return "Yield Priority";
+    if (k === "carbon_priority") return "Carbon Priority";
+    return k;
+  }
+
+  function labelConstraint(k){
+  return ({
+    water_limit: "Water limit",
+    budget_cap: "Budget cap",
+    labor_limited: "Labor limited",
+    organic_only: "Organic only",
+    maximize_yield: "Maximize yield",
+    maximize_carbon: "Maximize carbon",
+  }[k] || k);
+}
+
+function buildWhy(comp, winnerKey){
+  const w = (comp || []).find(r => r.plan_key === winnerKey);
+  if (!w) return [];
+
+  const others = (comp || []).filter(r => r.plan_key !== winnerKey);
+  const bullets = [];
+
+  // 1) Constraint summary (handles multiple constraints cleanly)
+  const constraints = Array.from(selected || []);
+  if (constraints.length === 0){
+    bullets.push("No constraints selected — ranking uses the base composite score.");
+  } else {
+    const top = constraints.slice(0, 3).map(labelConstraint);
+    bullets.push(
+      `Constraints considered: ${top.join(", ")}${constraints.length > 3 ? "…" : ""}.`
+    );
+  }
+
+  // 2) Water / Cost / Soil comparisons
+  if (others.length){
+    const bestWater = others.every(o => rankBucket(w.water_use) <= rankBucket(o.water_use));
+    bullets.push(bestWater
+      ? `Best on water use (${w.water_use}).`
+      : `Water use: ${w.water_use} (tradeoff vs others).`
+    );
+
+    const bestCost = others.every(o => rankCost(w.cost) <= rankCost(o.cost));
+    bullets.push(bestCost
+      ? `Most cost-efficient (${w.cost}).`
+      : `Cost: ${w.cost} (tradeoff vs others).`
+    );
+
+    const bestSoil = others.every(o => rankSoil(w.soil_health) >= rankSoil(o.soil_health));
+    bullets.push(bestSoil
+      ? `Strongest soil outcome (${w.soil_health}).`
+      : `Soil impact: ${w.soil_health}.`
+    );
+  } else {
+    // fallback if comp has only one row
+    bullets.push(`Water: ${w.water_use} • Cost: ${w.cost} • Soil: ${w.soil_health} • Risk: ${w.risk}.`);
+  }
+
+  // 3) Composite score explanation
+  bullets.push("Composite score ranks plans (water + cost + soil + risk), adjusted by your selected constraints.");
+
+  return bullets.slice(0, 5);
+}
+
+  function renderSkeleton(){
+    comparisonWrap.innerHTML = `
+      <div class="skeleton shimmer">
+        <div class="skRow big"></div>
+        <div class="skRow"></div>
+        <div class="skRow"></div>
+        <div class="skRow"></div>
+      </div>
+    `;
+    recWrap.innerHTML = `
+      <div class="skeleton shimmer skBlock">
+        <div class="skRow big"></div>
+        <div class="skRow"></div>
+        <div class="skRow"></div>
+        <div class="skRow"></div>
+      </div>
+    `;
+    tabsWrap.innerHTML = `
+      <div class="tabs">
+        <div class="tab skeleton shimmer"><div class="skRow big"></div><div class="skRow"></div></div>
+        <div class="tab skeleton shimmer"><div class="skRow big"></div><div class="skRow"></div></div>
+        <div class="tab skeleton shimmer"><div class="skRow big"></div><div class="skRow"></div></div>
+      </div>
+    `;
+    planWrap.innerHTML = `<div class="skeleton shimmer skBlock2"></div>`;
+  }
+
+  function renderComparison(comp){
+    const rows = (comp || []).map(r => `
+      <tr>
+        <td>
+          <div style="font-weight:900">${escapeHtml(r.title)}</div>
+          <div style="color:var(--muted); font-size:12px; font-weight:800">${escapeHtml(r.plan_key)}</div>
+        </td>
+        <td>${badgeWater(r.water_use)}</td>
+        <td>${badgeCost(r.cost)}</td>
+        <td>${badgeSoil(r.soil_health)}</td>
+        <td>${badgeRisk(r.risk)}</td>
+        <td>${badgeScore(r.score)}</td>
+      </tr>
+    `).join("");
+
+    comparisonWrap.innerHTML = `
+      <table>
+        <thead>
+          <tr><th>Plan</th><th>Water</th><th>Cost</th><th>Soil</th><th>Risk</th><th>Score</th></tr>
+        </thead>
+        <tbody>${rows}</tbody>
+      </table>
+    `;
+  }
+
+  // IMPORTANT: This now uses winnerKey we computed (NOT rec.winner), so it stays consistent.
+  function renderRecommendation(winnerKey, winnerScore, comp){
+    winnerMini.textContent = `${prettyKey(winnerKey)} • Score ${winnerScore ?? "—"}`;
+
+    const why = buildWhy(comp || [], winnerKey);
+    const whyHtml = why.map(x => `<li>${escapeHtml(x)}</li>`).join("");
+
+    recWrap.innerHTML = `
+      <div class="recHead">
+        <div>
+          <div class="recTitle">✅ Best fit: <span style="color:var(--text)">${escapeHtml(prettyKey(winnerKey))}</span></div>
+          <div class="recBody" style="margin-top:6px;">
+            Recommended using a composite KPI score (water + cost + soil + risk), adjusted by your selected constraints.
+          </div>
+          <div style="color:var(--muted); font-size:12px; margin-top:8px;">
+            <span class="badge"><span class="bDot"></span>Composite Score: ${winnerScore ?? "—"} / 99</span>
+          </div>
+        </div>
+      </div>
+      ${whyHtml ? `<ul class="why">${whyHtml}</ul>` : ""}
+      <div style="margin-top:10px; display:flex; flex-wrap:wrap; gap:8px;">
+        <span class="badge"><span class="bDot"></span>Tip: click a plan tab for full checklist</span>
+      </div>
+    `;
+  }
+
+  function renderTabs(plans, winnerKey){
+    const html = `
+      <div class="tabs">
+        ${(plans || []).map(p => {
+          const active = (p.key === activeKey) ? "active" : "";
+          const winMark = (p.key === winnerKey) ? " ✅" : "";
+          return `
+            <div class="tab ${active}" data-key="${escapeHtml(p.key)}">
+              <div class="tabTop">
+                <div class="tabKey">${escapeHtml(p.key)}</div>
+                <div class="tabMetrics">
+                  ${badgeWater(p.water_use)}
+                  ${badgeCost(p.cost)}
+                  ${badgeScore(p.score)}
+                </div>
+              </div>
+              <div class="tabName">${escapeHtml(prettyKey(p.key))}${winMark}</div>
+              <div style="color:var(--muted); font-size:12px; margin-top:4px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+                ${escapeHtml(p.title)}
+              </div>
+            </div>
+          `;
+        }).join("")}
+      </div>
+    `;
+    tabsWrap.innerHTML = html;
+
+    tabsWrap.querySelectorAll(".tab").forEach(el => {
+      el.addEventListener("click", () => {
+        activeKey = el.getAttribute("data-key");
+        // keep winnerKey consistent (winner is based on score, not backend winner)
+        renderTabs(lastResponse.plans, lastResponse.winnerKey);
+        renderPlanDetail(lastResponse.plans.find(p => p.key === activeKey));
+        tabsMini.textContent = prettyKey(activeKey);
+      });
+    });
+  }
+
+  function planDetails(plan){
+    const practices = (plan.practices || []).map(x => `<li>${escapeHtml(x)}</li>`).join("");
+    const t = plan.timeline || {};
+    const tl = ["pre_season","early_season","mid_season","late_season"].map(k => {
+      const items = (t[k] || []).map(x => `<li>${escapeHtml(x)}</li>`).join("");
+      const label = k.replace("_"," ");
+      return `<div style="color:var(--muted); font-size:12px; font-weight:900; margin-top:10px">${escapeHtml(label)}</div><ul>${items}</ul>`;
+    }).join("");
+
+    const risks = (plan.risks || []).map(x => `<li>${escapeHtml(x)}</li>`).join("");
+    const mitigations = (plan.mitigations || []).map(x => `<li>${escapeHtml(x)}</li>`).join("");
+
+    return `
+      <details open>
+        <summary>Checklist</summary>
+        <div style="color:var(--muted); font-size:12px; font-weight:900; margin-top:10px">Practices</div>
+        <ul>${practices}</ul>
+        <div style="color:var(--muted); font-size:12px; font-weight:900; margin-top:12px">Timeline</div>
+        ${tl}
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-top:12px;">
+          <div>
+            <div style="color:var(--muted); font-size:12px; font-weight:900;">Risks</div>
+            <ul>${risks}</ul>
+          </div>
+          <div>
+            <div style="color:var(--muted); font-size:12px; font-weight:900;">Mitigations</div>
+            <ul>${mitigations}</ul>
+          </div>
+        </div>
+      </details>
+    `;
+  }
+
+  function renderPlanDetail(plan){
+    if (!plan){
+      planWrap.innerHTML = `<div style="color:var(--muted); font-size:12px;">Select a plan tab to view details.</div>`;
+      return;
+    }
+    tabsMini.textContent = prettyKey(plan.key);
+
+    planWrap.innerHTML = `
+      <div class="planDetail">
+        <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:12px;">
+          <div style="min-width:0;">
+            <div style="color:var(--muted); font-size:12px; font-weight:900; letter-spacing:.3px;">${escapeHtml(plan.key)}</div>
+            <div class="planTitle">${escapeHtml(plan.title)}</div>
+            <div class="planSummary">${escapeHtml(plan.summary || "")}</div>
+          </div>
+          <div style="display:flex; flex-direction:column; gap:8px; align-items:flex-end;">
+            ${badgeWater(plan.water_use)}
+            ${badgeCost(plan.cost)}
+            ${badgeSoil(plan.soil_health)}
+            ${badgeRisk(plan.risk)}
+            ${badgeScore(plan.score)}
+          </div>
+        </div>
+
+        <div class="pillRow">
+          <span class="badge"><span class="bDot"></span>Click “Checklist” to expand full plan</span>
+          <span class="badge"><span class="bDot"></span>Export JSON for judges</span>
+        </div>
+
+        ${planDetails(plan)}
+      </div>
+    `;
+  }
+
+  function renderAll(data){
+    // 1) score plans
+    const scoredPlans = withScores(data.plans || []);
+
+    // 2) build comparison rows with score
+    const comp = (data.comparison || []).map(row => {
+      const p = scoredPlans.find(x => x.key === row.plan_key);
+      return { ...row, score: p?.score ?? null };
+    });
+
+    // 3) winner by score
+    const sorted = [...scoredPlans].sort((a,b) => (b.score ?? 0) - (a.score ?? 0));
+    const winnerKey = sorted[0]?.key || scoredPlans[0]?.key || "";
+    const winnerScore = sorted[0]?.score ?? null;
+
+    activeKey = winnerKey;
+
+    // 4) store everything (including winnerKey so clicks stay consistent)
+    lastResponse = { ...data, plans: scoredPlans, comparison: comp, winnerKey };
+
+    exportBtn.disabled = false;
+    copyBtn.disabled = false;
+
+    // 5) render all using winnerKey (NOT backend rec.winner)
+    renderComparison(comp);
+    renderRecommendation(winnerKey, winnerScore, comp);
+    renderTabs(scoredPlans, winnerKey);
+    renderPlanDetail(scoredPlans.find(p => p.key === activeKey));
+
+    // Optional: smooth scroll to right panel for demo polish
+    document.getElementById("recPanel")?.scrollIntoView({ behavior:"smooth", block:"start" });
+  }
+
+  async function run(){
+    errorBox.style.display = "none";
+    exportBtn.disabled = true;
+    copyBtn.disabled = true;
+    lastResponse = null;
+
+    const payload = {
+      crop: document.getElementById("crop").value,
+      acres: Number(document.getElementById("acres").value),
+      soil_type: document.getElementById("soil_type").value,
+      irrigation: document.getElementById("irrigation").value,
+      location: document.getElementById("location").value || "Davis, CA",
+      constraints: Array.from(selected),
+      allow_stub: false
+    };
+
+    runBtn.disabled = true;
+    setChipsDisabled(true);
+    statusEl.textContent = "Running 3 agents (Water • Yield • Carbon)…";
+    miniStatusEl.textContent = "Generating…";
+    renderSkeleton();
+
+    try{
+      const res = await fetch(API_URL, {
+        method:"POST",
+        headers:{ "Content-Type":"application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await res.json();
+      if(!res.ok){
+        errorBox.textContent = (data.detail || "Request failed");
+        errorBox.style.display = "block";
+        statusEl.textContent = "";
+        miniStatusEl.textContent = "Error";
+        return;
+      }
+
+      statusEl.textContent = "Done ✓";
+      miniStatusEl.textContent = "Ready";
+      renderAll(data);
+
+    }catch(e){
+      errorBox.textContent = String(e);
+      errorBox.style.display = "block";
+      statusEl.textContent = "";
+      miniStatusEl.textContent = "Error";
+    }finally{
+      runBtn.disabled = false;
+      setChipsDisabled(false);
+    }
+  }
+
+  document.getElementById("runBtn").onclick = run;
+
+  document.getElementById("resetBtn").onclick = () => {
+    selected.clear();
+    selected.add("water_limit");
+    renderChips();
+    statusEl.textContent = "";
+    miniStatusEl.textContent = "Ready";
+    errorBox.style.display = "none";
+    exportBtn.disabled = true;
+    copyBtn.disabled = true;
+    winnerMini.textContent = "—";
+    tabsMini.textContent = "Select a plan";
+    comparisonWrap.innerHTML = `<div style="color:var(--muted); font-size:12px;">Run a scenario to populate the comparison.</div>`;
+    recWrap.innerHTML = `<div style="color:var(--muted); font-size:12px;">Your “why” will appear here.</div>`;
+    tabsWrap.innerHTML = "";
+    planWrap.innerHTML = "";
+    lastResponse = null;
+    activeKey = null;
+  };
+
+  document.getElementById("exportBtn").onclick = () => {
+    if (!lastResponse) return;
+    const blob = new Blob([JSON.stringify(lastResponse, null, 2)], { type:"application/json" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "climate_crop_plans.json";
+    a.click();
+  };
+
+  document.getElementById("copyBtn").onclick = async () => {
+    if (!lastResponse) return;
+    try{
+      await navigator.clipboard.writeText(JSON.stringify(lastResponse, null, 2));
+      miniStatusEl.textContent = "Copied ✓";
+      setTimeout(() => miniStatusEl.textContent = "Ready", 900);
+    }catch(e){
+      miniStatusEl.textContent = "Copy failed";
+      setTimeout(() => miniStatusEl.textContent = "Ready", 1200);
+    }
+  };
+
+  renderChips();
+</script>
+</body>
+</html>
