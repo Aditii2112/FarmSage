@@ -13,13 +13,13 @@ Demo: https://drive.google.com/file/d/1j7UVs-Q60YhjKRXQYOyR2RzFGxnN1kUd/view?usp
 
 Farmers today face impossible tradeoffs:
 
-Water scarcity
+✔Water scarcity
 
-Rising input costs
+✔Rising input costs
 
-Climate volatility
+✔Climate volatility
 
-Soil degradation
+✔Soil degradation
 
 Yet most planning tools are static, single-objective, or spreadsheet-based.
 
@@ -30,8 +30,11 @@ It runs three intelligent strategy agents in parallel — Water Saver, Yield Pri
 Instead of guesswork, farmers get:
 
 ✔ Structured seasonal plans
+
 ✔ Risk analysis
+
 ✔ Soil impact insights
+
 ✔ A ranked best-fit strategy
 
 # System Architecture
@@ -50,13 +53,13 @@ Intake Node – Captures farm profile & constraints
 
 Assumptions Node – Establishes contextual baselines
 
-Parallel Strategy Agents
+✔Parallel Strategy Agents
 
-Water Saver
+✔Water Saver
 
-Yield Priority
+✔Yield Priority
 
-Carbon Priority
+✔Carbon Priority
 
 Score & Merge Node
 
