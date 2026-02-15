@@ -9,7 +9,7 @@ Built using LangGraph multi-agent orchestration + Morph LLM, Farm Sage transform
 
 Demo: https://drive.google.com/file/d/1j7UVs-Q60YhjKRXQYOyR2RzFGxnN1kUd/view?usp=sharing
 
-![Dashboard](https://github.com/Aditii2112/FarmSage/blob/main/assets/Dasshboard.png?raw=true)
+![Dashboard](https://github.com/Aditii2112/FarmSage/blob/main/assets/Dashboard.png?raw=true)
 
 # Why Farm Sage?
 
