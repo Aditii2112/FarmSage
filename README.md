@@ -13,13 +13,13 @@ Demo: https://drive.google.com/file/d/1j7UVs-Q60YhjKRXQYOyR2RzFGxnN1kUd/view?usp
 
 Farmers today face impossible tradeoffs:
 
-🌊 Water scarcity
+Water scarcity
 
-💰 Rising input costs
+Rising input costs
 
-🌍 Climate volatility
+Climate volatility
 
-🌱 Soil degradation
+Soil degradation
 
 Yet most planning tools are static, single-objective, or spreadsheet-based.
 
@@ -127,17 +127,6 @@ Visit:
 
 [http://localhost:8000](http://127.0.0.1:8000/)
 
-📸 Demo Features
-
-Toggle real-world farm constraints
-
-Generate 3 parallel climate strategies
-
-Compare tradeoffs (Water • Cost • Soil • Risk)
-
-View ranked composite KPI score
-
-Export structured JSON for analysis
 
 # Vision
 
